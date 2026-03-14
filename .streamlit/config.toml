@@ -1,0 +1,9 @@
+[logger]
+# Suppress "missing ScriptRunContext" warnings from background threads.
+# These are cosmetic — they come from Streamlit's internal heartbeat monitor
+# and do not affect functionality.
+level = "error"
+
+[server]
+# Disable the "Running in bare mode" hint that accompanies ScriptRunContext warnings
+headless = false

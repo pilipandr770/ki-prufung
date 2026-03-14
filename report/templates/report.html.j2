@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KI-Marktforschungsbericht: {{ ctx.product.name }}</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, Helvetica, sans-serif; background: #f5f6fa; color: #2c3e50; font-size: 14px; }
+  .container { max-width: 1100px; margin: 0 auto; padding: 24px; }
+  header { background: linear-gradient(135deg, #2c3e50, #3498db); color: white; padding: 32px; border-radius: 12px; margin-bottom: 24px; }
+  header h1 { font-size: 24px; margin-bottom: 8px; }
+  header .subtitle { opacity: 0.85; font-size: 13px; }
+  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .kpi { background: white; border-radius: 10px; padding: 20px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .kpi .value { font-size: 36px; font-weight: bold; color: #3498db; }
+  .kpi .label { font-size: 12px; color: #7f8c8d; margin-top: 4px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .stars { color: #f39c12; font-size: 20px; }
+  .section { background: white; border-radius: 10px; padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); }
+  .section h2 { font-size: 16px; color: #2c3e50; margin-bottom: 16px; border-bottom: 2px solid #3498db; padding-bottom: 8px; }
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #ecf0f1; padding: 10px 12px; text-align: left; font-weight: 600; color: #555; }
+  td { padding: 9px 12px; border-bottom: 1px solid #f0f0f0; }
+  tr:hover td { background: #fafbfc; }
+  .review-card { border: 1px solid #e8ecf0; border-radius: 8px; padding: 16px; margin-bottom: 12px; }
+  .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+  .review-persona { font-weight: 600; font-size: 13px; }
+  .review-traits { font-size: 11px; color: #7f8c8d; margin-top: 2px; }
+  .review-text { font-size: 13px; line-height: 1.6; color: #444; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 12px; font-size: 11px; font-weight: 600; }
+  .badge-pos { background: #d5f5e3; color: #27ae60; }
+  .badge-neg { background: #fadbd8; color: #e74c3c; }
+  .badge-neu { background: #eaecee; color: #7f8c8d; }
+  .keywords { display: flex; flex-wrap: wrap; gap: 8px; }
+  .keyword { background: #ebf5fb; color: #2980b9; padding: 4px 12px; border-radius: 14px; font-size: 12px; }
+  footer { text-align: center; color: #aaa; font-size: 11px; margin-top: 32px; padding: 16px; }
+  @media (max-width: 700px) { .kpi-grid { grid-template-columns: repeat(2,1fr); } .charts-row { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>KI-Marktforschungsbericht</h1>
+    <div class="subtitle">
+      Produkt: <strong>{{ ctx.product.name }}</strong> &nbsp;|&nbsp;
+      Erstellt: {{ ctx.generated_at }} &nbsp;|&nbsp;
+      {{ ctx.total_reviews }} synthetische Rezensionen &nbsp;|&nbsp;
+      KI-Modell: Claude (Anthropic)
+    </div>
+  </header>
+
+  <!-- KPIs -->
+  <div class="kpi-grid">
+    <div class="kpi">
+      <div class="value">{{ ctx.total_reviews }}</div>
+      <div class="label">Rezensionen</div>
+    </div>
+    <div class="kpi">
+      <div class="value stars">{{ "%.1f"|format(ctx.avg_rating) }} ★</div>
+      <div class="label">Ø Bewertung</div>
+    </div>
+    <div class="kpi">
+      <div class="value" style="color:#27ae60">{{ ctx.sentiment_dist.get('positiv', 0) }}</div>
+      <div class="label">Positiv</div>
+    </div>
+    <div class="kpi">
+      <div class="value" style="color:#e74c3c">{{ ctx.sentiment_dist.get('negativ', 0) }}</div>
+      <div class="label">Negativ</div>
+    </div>
+  </div>
+
+  <!-- Charts Row 1 -->
+  <div class="section">
+    <h2>Bewertungs- & Sentiment-Analyse</h2>
+    <div class="charts-row">
+      <div>{{ ctx.chart_rating_html | safe }}</div>
+      <div>{{ ctx.chart_sentiment_html | safe }}</div>
+    </div>
+  </div>
+
+  <!-- Trait Chart -->
+  <div class="section">
+    <h2>Bewertung nach Persona-Eigenschaft</h2>
+    {{ ctx.chart_traits_html | safe }}
+  </div>
+
+  <!-- Persona Breakdown Table -->
+  <div class="section">
+    <h2>Persona-Gruppen im Detail</h2>
+    <table>
+      <thead>
+        <tr><th>Eigenschaft</th><th>Anzahl</th><th>Ø Bewertung</th><th>Ø Sentiment</th></tr>
+      </thead>
+      <tbody>
+        {% for _, row in ctx.persona_breakdown.iterrows() %}
+        <tr>
+          <td>{{ row.trait }}</td>
+          <td>{{ row['count'] }}</td>
+          <td>{{ "%.2f"|format(row.avg_rating) }} ★</td>
+          <td>
+            {% if row.avg_sentiment > 0.15 %}
+              <span class="badge badge-pos">positiv</span>
+            {% elif row.avg_sentiment < -0.15 %}
+              <span class="badge badge-neg">negativ</span>
+            {% else %}
+              <span class="badge badge-neu">neutral</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Rating Distribution Table -->
+  <div class="section">
+    <h2>Sternverteilung</h2>
+    <table>
+      <thead><tr><th>Sterne</th><th>Anzahl</th><th>Anteil</th></tr></thead>
+      <tbody>
+        {% for stars in [5,4,3,2,1] %}
+        <tr>
+          <td>{{ "★" * stars }}{{ "☆" * (5-stars) }}</td>
+          <td>{{ ctx.rating_dist.get(stars, 0) }}</td>
+          <td>{{ "%.1f"|format(ctx.rating_dist.get(stars, 0) / ctx.total_reviews * 100 if ctx.total_reviews > 0 else 0) }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Keywords -->
+  <div class="section">
+    <h2>Häufigste Begriffe</h2>
+    {{ ctx.chart_keywords_html | safe }}
+    <div class="keywords" style="margin-top:16px">
+      {% for word, count in ctx.top_keywords[:20] %}
+        <span class="keyword">{{ word }} ({{ count }})</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Sample Reviews -->
+  <div class="section">
+    <h2>Beispiel-Rezensionen ({{ ctx.sample_reviews|length }} von {{ ctx.total_reviews }})</h2>
+    {% for r in ctx.sample_reviews %}
+    <div class="review-card">
+      <div class="review-header">
+        <div>
+          <div class="review-persona">{{ r.persona_name }}</div>
+          <div class="review-traits">{{ r.persona_traits | join(", ") }}</div>
+        </div>
+        <div style="text-align:right">
+          <div class="stars" style="font-size:15px">{{ "★" * r.star_rating }}{{ "☆" * (5-r.star_rating) }}</div>
+          <div style="margin-top:4px">
+            {% if r.sentiment_score > 0.15 %}
+              <span class="badge badge-pos">positiv</span>
+            {% elif r.sentiment_score < -0.15 %}
+              <span class="badge badge-neg">negativ</span>
+            {% else %}
+              <span class="badge badge-neu">neutral</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="review-text">{{ r.review_text }}</div>
+    </div>
+    {% endfor %}
+  </div>
+
+  <footer>
+    Generiert von KI-Marktforschung DE &bull; {{ ctx.total_reviews }} synthetische Rezensionen &bull; {{ ctx.generated_at }}
+  </footer>
+
+</div>
+</body>
+</html>
