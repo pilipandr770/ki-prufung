@@ -51,8 +51,9 @@ async def _ask_claude_for_action(
     screenshot_bytes = await page.screenshot(full_page=False, type="png")
     screenshot_b64 = base64.b64encode(screenshot_bytes).decode()
 
+    b2b_info = f"\nFirma: {persona.b2b_context}" if persona.b2b_context else ""
     user_text = (
-        f"Persona: {persona.display_name} (email: {persona.email})\n"
+        f"Persona: {persona.display_name} (email: {persona.email}, password: {persona.password}){b2b_info}\n"
         f"Goal: {step_description}\n"
         f"{('Context: ' + extra_context) if extra_context else ''}\n\n"
         "What single browser action should be performed next?"

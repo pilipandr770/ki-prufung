@@ -78,6 +78,8 @@ class TestScenario:
     auto_delete: bool = True
     # Language hint for Claude prompts
     language: str = "de"
+    # "b2c" = private customers | "b2b" = business customers (company data included)
+    mode: str = "b2c"
 
 
 @dataclass

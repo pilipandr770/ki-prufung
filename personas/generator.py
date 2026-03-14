@@ -2,15 +2,32 @@ import random
 import uuid
 from faker import Faker
 from .models import Persona
-from .traits import TRAIT_POOL, INCOMPATIBLE_PAIRS
+from .traits import TRAIT_POOL, B2B_TRAIT_POOL, INCOMPATIBLE_PAIRS
 from .languages import LANGUAGE_CONFIG
 from config import settings
 
+_RECHTSFORMEN = ["GmbH", "UG (haftungsbeschränkt)", "AG", "GbR", "e.K.", "OHG", "KG"]
+_DE_CITIES = [
+    "Berlin", "Hamburg", "München", "Köln", "Frankfurt am Main", "Stuttgart",
+    "Düsseldorf", "Leipzig", "Dortmund", "Essen", "Bremen", "Dresden",
+    "Hannover", "Nürnberg", "Duisburg", "Bochum", "Wuppertal", "Bielefeld",
+]
+
+
+def _fake_vat() -> str:
+    """Format-valid but fake German VAT number DE + 9 digits."""
+    return f"DE{random.randint(100_000_000, 999_999_999)}"
+
+
+def _fake_zip() -> str:
+    return f"{random.randint(10000, 99999)}"
+
 
 class PersonaGenerator:
-    def __init__(self, seed: int | None = None, language: str = "de"):
+    def __init__(self, seed: int | None = None, language: str = "de", mode: str = "b2c"):
         self._rng = random.Random(seed)
         self._language = language
+        self._mode = mode  # "b2c" | "b2b"
         lang_cfg = LANGUAGE_CONFIG.get(language, LANGUAGE_CONFIG["de"])
         self._regions = lang_cfg["regions"]
         self._region_weights = lang_cfg["region_weights"]
@@ -29,7 +46,7 @@ class PersonaGenerator:
         persona_id = str(uuid.uuid4())
         email = f"test-{persona_id[:8]}@{settings.test_email_domain}"
 
-        return Persona(
+        kwargs: dict = dict(
             id=persona_id,
             vorname=self._fake.first_name(),
             nachname=self._fake.last_name(),
@@ -41,7 +58,21 @@ class PersonaGenerator:
             traits=traits,
             tone_bias=tone_bias,
             star_rating_tendency=star_tendency,
+            mode=self._mode,
         )
+
+        if self._mode == "b2b":
+            city = self._rng.choice(_DE_CITIES)
+            kwargs.update(
+                company_name=self._fake.company(),
+                rechtsform=self._rng.choice(_RECHTSFORMEN),
+                vat_number=_fake_vat(),
+                company_address=self._fake.street_address(),
+                company_zip=_fake_zip(),
+                company_city=city,
+            )
+
+        return Persona(**kwargs)
 
     def _pick_traits(self) -> list[dict]:
         n_traits = self._rng.choices([1, 2, 3], weights=[0.4, 0.4, 0.2], k=1)[0]

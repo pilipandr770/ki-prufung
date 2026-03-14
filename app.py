@@ -98,29 +98,32 @@ with st.sidebar:
 st.title("🧠 ConsumerIQ — KI-Marktforschung für den EU-Markt")
 st.markdown(
     """
-    **Synthetische Konsumentenforschung & EU-Compliance-Analyse — in Minuten statt Wochen.**  
-    Powered by Claude AI &middot; DSGVO-konform &middot; Kein echtes Nutzertracking.
+    **B2C & B2B Konsumentenforschung, EU-Compliance-Analyse & automatisiertes UX-Testing — in Minuten statt Wochen.**  
+    Powered by Claude AI &middot; DSGVO-konform &middot; Kein echtes Nutzertracking &middot; Deutsch, Englisch, Französisch, Polnisch.
     """
 )
 
 # ── Value proposition cards ─────────────────────────────────────────────
 _c1, _c2, _c3, _c4 = st.columns(4)
 _c1.info(
-    "🤯 **Konsumenten-Panel**  \n"
-    "500 KI-Personas beantworten Marktforschung in 3 Min. — like Aaru ($1B Startup)"
+    "🤯 **Konsumenten-Panel** *(B2C & B2B)*  \n"
+    "500 KI-Personas beantworten Marktforschungsfragen in 3 Min. — "
+    "Konzepttests, Preisanalysen, Werbetests & Konkurrenzvergleiche."
 )
 _c2.info(
     "⚖️ **EU-Compliance-Check** ✨ *Bonus*  \n"
-    "Impressum, DSGVO, Cookie-Banner, AGB — automatisch geprüft. "
-    "DSGVO-Bußer bis 20 Mio. € vermeiden."
+    "Impressum, DSGVO, Cookie-Banner, AGB & Widerrufsbelehrung — automatisch geprüft. "
+    "Bußgelder bis 20 Mio. € vermeiden."
 )
 _c3.info(
     "🌐 **Produktrezensionen**  \n"
-    "Authentische KI-Reviews für Websites & Apps — 4 Sprachen, demographisch divers"
+    "Authentische KI-Reviews für Websites, Apps & Produkte — "
+    "4 Sprachen, demographisch diverse Personas, CSV/HTML-Export."
 )
 _c4.info(
-    "🧪 **UX-Testing**  \n"
-    "KI-Personas navigieren durch deine App und berichten aus Nutzerperspektive"
+    "🧪 **UX-Testing** *(B2C & B2B)*  \n"
+    "KI-Personas navigieren mit echtem Browser durch deine App. "
+    "B2B-Modus: Firmendaten, USt-IdNr & Adresse werden automatisch generiert."
 )
 
 st.divider()
@@ -574,6 +577,13 @@ with tab_test:
             )
         test_headless = st.checkbox("Browser im Hintergrund (headless)", value=True)
 
+        test_mode = st.radio(
+            "🏢 Zielpublikum",
+            ["B2C — Privatkunden", "B2B — Geschäftskunden"],
+            horizontal=True,
+            help="B2B: Personas erhalten automatisch Firmendaten, USt-IdNr & Adresse.",
+        )
+
         submitted_test = st.form_submit_button("▶️ Test starten", use_container_width=True)
 
     if submitted_test:
@@ -589,6 +599,8 @@ with tab_test:
             st.error("Bitte mindestens einen Testschritt angeben.")
             st.stop()
 
+        _mode = "b2b" if "B2B" in test_mode else "b2c"
+
         from testing.models import TestScenario
         from testing.engine import run_test_session
 
@@ -597,10 +609,11 @@ with tab_test:
             steps=steps,
             auto_delete=auto_delete,
             language=language,
+            mode=_mode,
         )
 
         # Generate test personas
-        gen = PersonaGenerator(language=language)
+        gen = PersonaGenerator(language=language, mode=_mode)
         test_personas = gen.generate(test_persona_count)
 
         st.divider()
@@ -611,6 +624,11 @@ with tab_test:
                 f"E-Mail: `{p.email}` · Passwort: `{p.password}`  \n"
                 f"_Traits: {', '.join(p.trait_labels) or '–'}_"
             )
+            if p.mode == "b2b" and p.company_name:
+                st.markdown(
+                    f"🏢 **{p.company_name} {p.rechtsform}** · USt-IdNr: `{p.vat_number}`  \n"
+                    f"📍 {p.company_address}, {p.company_zip} {p.company_city}"
+                )
 
         st.divider()
         st.subheader("🔄 Testablauf")

@@ -23,6 +23,20 @@ TRAIT_POOL: list[dict] = [
     {"id": "heimwerker",       "label": "Heimwerker/in",        "weight": 0.06, "tone_bias": "practical",             "star_modifier": 0.0,  "age_min": 28, "age_max": 70},
 ]
 
+# ── B2B Trait Pool ───────────────────────────────────────────────────────────
+B2B_TRAIT_POOL: list[dict] = [
+    {"id": "geschaeftsfuehrer",   "label": "Geschäftsführer/in",     "weight": 0.15, "tone_bias": "efficiency",      "star_modifier":  0.1,  "age_min": 30, "age_max": 65},
+    {"id": "startup_gruender",    "label": "Startup-Gründer/in",    "weight": 0.12, "tone_bias": "innovative",      "star_modifier":  0.2,  "age_min": 22, "age_max": 45},
+    {"id": "mittelstand_inhaber", "label": "Mittelstand-Inhaber/in","weight": 0.12, "tone_bias": "practical",       "star_modifier":  0.2,  "age_min": 35, "age_max": 65},
+    {"id": "buchhalter_b2b",      "label": "Buchhalter/in",         "weight": 0.11, "tone_bias": "detail_oriented", "star_modifier":  0.0,  "age_min": 25, "age_max": 60},
+    {"id": "einkaeuferin_b2b",    "label": "Einkäufer/in (B2B)",   "weight": 0.11, "tone_bias": "price_critical",  "star_modifier": -0.1,  "age_min": 25, "age_max": 55},
+    {"id": "steuerberater",       "label": "Steuerberater/in",     "weight": 0.10, "tone_bias": "detail_oriented", "star_modifier":  0.0,  "age_min": 28, "age_max": 65},
+    {"id": "freelancer_b2b",      "label": "Freiberufler/in",      "weight": 0.10, "tone_bias": "value_focused",   "star_modifier": -0.1,  "age_min": 25, "age_max": 55},
+    {"id": "compliance_officer",  "label": "Compliance Officer",   "weight": 0.09, "tone_bias": "critical_detail", "star_modifier": -0.2,  "age_min": 30, "age_max": 60},
+    {"id": "vertriebsleiter",     "label": "Vertriebsleiter/in",   "weight": 0.10, "tone_bias": "performance",     "star_modifier":  0.1,  "age_min": 28, "age_max": 60},
+    {"id": "it_administrator",    "label": "IT-Administrator/in",  "weight": 0.10, "tone_bias": "technical_detail","star_modifier":  0.1,  "age_min": 22, "age_max": 55},
+]
+
 # Pairs that cannot coexist on the same persona
 INCOMPATIBLE_PAIRS: list[FrozenSet[str]] = [
     frozenset(["luxuskaeufer", "sparfuechsin"]),
